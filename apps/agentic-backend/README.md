@@ -157,6 +157,42 @@ This sub-graph demonstrates:
 - How relationships can have properties (e.g., diagnosedDate, adherence, appointment status).
 - How the journey is tracked over time and across different healthcare events.
 
+## Example: Appointment Ontology Entity
+
+The `Appointment` class is a core ontology entity in this project, modeled as a Neo4j node using Spring Data Neo4j. This class demonstrates how both nodes and edges (relationships) are represented in the code and persisted in the graph database.
+
+```java
+@Node
+public class Appointment {
+    @Id
+    private String appointmentId;
+    private String date;
+    private String type;
+    private String status;
+
+    @Relationship(type = "WITH_DOCTOR")
+    private Doctor doctor;
+
+    @Relationship(type = "AT_HOSPITAL")
+    private Hospital hospital;
+
+    @Relationship(type = "HAS_DIAGNOSIS")
+    private List<Diagnosis> diagnoses;
+
+    @Relationship(type = "HAS_TEST")
+    private List<Test> tests;
+
+    // getters and setters
+}
+```
+
+**Explanation:**  
+- The `@Node` annotation makes `Appointment` a node in the Neo4j graph.  
+- Fields like `date`, `type`, and `status` store appointment details.  
+- The `@Relationship` annotations define edges from the `Appointment` node to other nodes (`Doctor`, `Hospital`, `Diagnosis`, `Test`).  
+- When an `Appointment` object is created and saved with related entities, Spring Data Neo4j will create both the node and the corresponding relationships (edges) in the database.  
+- This approach allows you to model complex healthcare journeys, connecting appointments to doctors, hospitals, diagnoses, and tests, enabling advanced queries and reasoning in your knowledge graph.
+
 ## Security Configuration
 
 The backend uses Spring Security to protect its endpoints. By default, all endpoints require authentication except for the Neo4j health check endpoint, which is publicly accessible for monitoring and testing purposes.
@@ -201,6 +237,128 @@ To verify that your Spring Boot backend can connect to Neo4j Aura, a health chec
 
 This endpoint is publicly accessible for monitoring and testing, as configured in the security settings.
 
----
+# Ontology Entities and Microservices Architecture Documentation
 
-You can now expand your ontology and implement the logic for patient journey tracking and alerts in your Spring Boot microservice.
+## Ontology Entities
+
+In this project, the following classes are considered **ontology entities**:
+- Patient
+- Doctor
+- Hospital
+- Appointment
+- Diagnosis
+- Treatment
+- Medication
+- Test
+
+These entities represent real-world healthcare concepts and are modeled as nodes in the Neo4j graph database. Each entity is annotated with `@Node` and may have relationships to other entities, reflecting the semantic structure of the healthcare domain. This approach enables advanced queries and reasoning about patient journeys, diagnoses, treatments, and more.
+
+### Example: Patient Entity
+```java
+@Node
+public class Patient {
+    @Id
+    private String patientId;
+    private String name;
+    private String dob;
+    private String gender;
+    // ...other fields...
+    @Relationship(type = "HAS_APPOINTMENT")
+    private List<Appointment> appointments;
+    @Relationship(type = "HAS_DIAGNOSIS")
+    private List<Diagnosis> diagnoses;
+    // ...
+}
+```
+
+## Microservices Architecture and Design Patterns
+
+- The backend is structured as a Spring Boot microservice, following microservices architecture principles.
+- Each major domain concept is modeled as a separate entity, supporting domain-driven design.
+- Repository interfaces are created for each entity, following the repository pattern for clean separation of data access logic.
+- Security is managed centrally using Spring Security, with public and protected endpoints.
+- The project is organized using NX monorepo best practices, with all backend code under `apps/agentic-backend/` and shared code in `libs/` (if needed).
+
+## Important Note: How Data is Created in Neo4j vs Relational Databases
+
+In traditional Spring Boot applications with relational databases (using JPA):
+- Defining an `@Entity` class and a repository sets up the table structure.
+- If `spring.jpa.hibernate.ddl-auto` is set to `update` or `create`, tables are auto-created.
+- **However, rows (data) are only created when you save entities using the repository.**
+
+In Spring Data Neo4j (for graph databases):
+- Defining a `@Node` class and a repository sets up the structure for nodes and relationships.
+- **Neo4j does NOT auto-create nodes or relationships just because the class exists.**
+- **Nodes and relationships are only created when you save objects using the repository (e.g., `appointmentRepository.save(...)`).**
+- Neo4j is schema-optional: it does not require or create a schema for nodes/relationships up front, and it does not create any data until you explicitly save it.
+
+### Why is this?
+- Neo4j is about modeling and querying relationships, not just storing isolated records.
+- You must create and save objects that reference each other (e.g., an `Appointment` with a `Doctor`, `Patient`, etc.) to create both nodes and their relationships in the graph.
+- Neo4j will only show nodes and relationships that have actually been persisted via your repositories.
+
+**Summary:**
+- In both JPA and Neo4j, the entity/repo setup only defines the structure.
+- **Actual data (rows in SQL, nodes in Neo4j) is only created when you save objects using the repository.**
+- Neo4j does not create "empty" nodes for you; you must save data to see nodes in the database.
+
+**To see nodes and relationships in Neo4j:**
+- You need to save objects with their relationships set (e.g., `appointment.setDoctor(doctor)`), then call `appointmentRepository.save(appointment)`.
+
+## Neo4j Deprecation Warning: `id()` vs `elementId()`
+
+When running the backend and initializing data, you may see a warning like this in the logs:
+
+```
+The query used a deprecated function. ('id' has been replaced by 'elementId or an application-generated id')
+Neo.ClientNotification.Statement.FeatureDeprecationWarning: This feature is deprecated and will be removed in future versions.
+... WHERE id(endNode) = relationship.toId ...
+```
+
+**What does this mean?**
+- This warning is generated by Neo4j and Spring Data Neo4j because the framework's generated Cypher queries use the deprecated `id()` function to reference node IDs.
+- Neo4j now recommends using `elementId()` or your own application-generated IDs for referencing nodes.
+- Your data is still being created and relationships are working as expected.
+
+**What should you do?**
+- You do not need to change your code right now. This is a framework-level issue, not a problem with your entity or repository code.
+- Always use your own unique IDs (like `patientId`, `doctorId`, etc.) for lookups and relationships, not the internal Neo4j `id()`.
+
+## Data Initializer: Sample Data Creation on Startup
+
+This project includes a `DataInitializer` class that automatically creates and saves sample nodes and relationships in Neo4j when the backend application starts. This is useful for onboarding, testing, and demonstration purposes.
+
+**How it works:**
+- The `DataInitializer` implements `CommandLineRunner` and is annotated with `@Component`, so it runs at application startup.
+- It creates and saves:
+  - A `Doctor` node
+  - A `Hospital` node
+  - A `Diagnosis` node
+  - An `Appointment` node (linked to the doctor, hospital, and diagnosis)
+  - A `Patient` node (linked to the appointment and diagnosis)
+- All relationships (edges) are set in Java before saving, so Neo4j will persist both the nodes and their connections.
+- After initialization, a log message is printed: `Sample data initialized: Patient, Doctor, Hospital, Diagnosis, Appointment nodes and relationships created in Neo4j.`
+
+**How to use:**
+1. Start the backend application with `./mvnw spring-boot:run` (or `mvnw.cmd spring-boot:run` on Windows).
+2. On startup, the sample data will be created automatically if it does not already exist.
+3. You can view the created nodes and relationships in your Neo4j instance.
+
+**Example (simplified):**
+```java
+@Component
+public class DataInitializer implements CommandLineRunner {
+    @Override
+    public void run(String... args) {
+        // ... create Doctor, Hospital, Diagnosis ...
+        // ... create Appointment and link to Doctor, Hospital, Diagnosis ...
+        // ... create Patient and link to Appointment, Diagnosis ...
+        // ... save all using repositories ...
+        System.out.println("Sample data initialized: Patient, Doctor, Hospital, Diagnosis, Appointment nodes and relationships created in Neo4j.");
+    }
+}
+```
+
+This ensures that your Neo4j database is populated with a realistic mini-graph for immediate exploration and development.
+
+---
