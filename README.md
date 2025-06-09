@@ -18,6 +18,27 @@
    - Command: `npx nx@latest init`
    - Explanation: Added NX configuration to the existing non-empty project, enabling monorepo management without deleting any files.
 
+5. **Checked the remote repository URL**
+   - Command: `git remote -v`
+   - Explanation: Verified the current git remote URL to ensure the project is connected to the correct GitHub repository (`https://github.com/tnhgeneric/Agentic-onto.git`).
+
+6. **Ready to push changes to the repository**
+   - Next steps: Stage, commit, and push the latest changes (including NX setup and documentation updates) to the remote repository.
+
+7. **Initial commit and push to GitHub**
+   - Command: 
+     1. `git add .`
+     2. `git commit -m "Initial NX monorepo setup with documentation"`
+     3. `git push origin main`
+   - Explanation: Stages all changes, creates the first commit with a descriptive message, and pushes the code to the main branch on GitHub. This is essential for version control and collaboration, especially for beginners following this guide.
+
+8. **Installed and configured Prettier for code formatting**
+   - Command:
+     1. `npm install --save-dev prettier`
+     2. Created `.prettierrc` with formatting rules.
+     3. Created `.prettierignore` to exclude files/folders from formatting.
+   - Explanation: Prettier is now set up for automatic code formatting across the monorepo, ensuring consistent code style. The `.prettierrc` file defines formatting preferences, and `.prettierignore` specifies files and folders to skip.
+
 ---
 
 ## Architecture Overview
@@ -39,6 +60,23 @@
 ### Firestore (OLTP)
 - Firestore will be used for operational (OLTP) data storage, supporting real-time updates and flexible document models.
 - Integration points will be provided in backend services for seamless data flow between Firestore and Neo4j.
+
+---
+
+## NX Monorepo Structure (Best Practice)
+
+Your project now follows the recommended NX structure:
+
+```
+apps/
+  agentic-frontend/      # Expo Go app (mobile frontend)
+  agentic-backend/       # Spring Boot microservice (backend)
+libs/
+  ...                    # Shared libraries (optional)
+```
+- All deployable apps (frontend and backend) are under `apps/`.
+- Shared code goes in `libs/`.
+- This structure is used by leading companies and recommended by the NX team.
 
 ---
 

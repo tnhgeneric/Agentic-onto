@@ -1,0 +1,8 @@
+spring:
+  application:
+    name: agentic-backend
+  neo4j:
+    uri: neo4j+s://d8be03e2.databases.neo4j.io
+    authentication:
+      username: neo4j
+      password: Xpxlxa1Y7luEkI9JljAsVuwzIeBAoay6MyIL_pU0iBg
