@@ -19,6 +19,12 @@ public class DataInitializer implements CommandLineRunner {
     private AppointmentRepository appointmentRepository;
     @Autowired
     private DiagnosisRepository diagnosisRepository;
+    @Autowired
+    private TreatmentRepository treatmentRepository;
+    @Autowired
+    private MedicationRepository medicationRepository;
+    @Autowired
+    private TestRepository testRepository;
 
     @Override
     public void run(String... args) throws Exception {
@@ -74,5 +80,50 @@ public class DataInitializer implements CommandLineRunner {
         patient.setAppointments(Collections.singletonList(appointment));
         patient.setDiagnoses(Collections.singletonList(diagnosis));
         patientRepository.save(patient);
+
+        // Create Treatment
+        Treatment treatment = new Treatment();
+        treatment.setTreatmentId("treat1");
+        treatment.setName("Hypertension Management");
+        treatment.setStartDate("2024-01-21");
+        treatment.setEndDate("2024-06-21");
+        treatment.setStatus("Ongoing");
+        treatmentRepository.save(treatment);
+
+        // Create Medication
+        Medication medication = new Medication();
+        medication.setMedicationId("med1");
+        medication.setDrugName("Lisinopril");
+        medication.setDosage("10mg");
+        medication.setFrequency("Once daily");
+        medication.setPrescribedDate("2024-01-20");
+        medication.setAdherence("Compliant");
+        medication.setDiagnosis(diagnosis);
+        medicationRepository.save(medication);
+
+        // Create Test
+        Test test = new Test();
+        test.setTestId("test1");
+        test.setName("Blood Pressure Test");
+        test.setResult("140/90");
+        test.setDate("2024-01-20");
+        test.setStatus("Completed");
+        testRepository.save(test);
+
+        // Link Treatment to Medication
+        treatment.setMedications(Collections.singletonList(medication));
+        treatmentRepository.save(treatment);
+
+        // Link Diagnosis to Treatment
+        diagnosis.setTreatments(Collections.singletonList(treatment));
+        diagnosisRepository.save(diagnosis);
+
+        // Link Appointment to Test
+        appointment.setTests(Collections.singletonList(test));
+        appointmentRepository.save(appointment);
+
+        // Log a message to indicate data initialization is complete
+        System.out
+                .println("Sample data initialized: All 8 ontology entities and their relationships created in Neo4j.");
     }
 }

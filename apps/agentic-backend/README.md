@@ -336,8 +336,11 @@ This project includes a `DataInitializer` class that automatically creates and s
   - A `Diagnosis` node
   - An `Appointment` node (linked to the doctor, hospital, and diagnosis)
   - A `Patient` node (linked to the appointment and diagnosis)
+  - A `Treatment` node (linked to diagnosis and/or appointment)
+  - A `Medication` node (linked to treatment and/or patient)
+  - A `Test` node (linked to appointment and/or patient)
 - All relationships (edges) are set in Java before saving, so Neo4j will persist both the nodes and their connections.
-- After initialization, a log message is printed: `Sample data initialized: Patient, Doctor, Hospital, Diagnosis, Appointment nodes and relationships created in Neo4j.`
+- After initialization, a log message is printed: `Sample data initialized: Patient, Doctor, Hospital, Diagnosis, Appointment, Treatment, Medication, Test nodes and relationships created in Neo4j.`
 
 **How to use:**
 1. Start the backend application with `./mvnw spring-boot:run` (or `mvnw.cmd spring-boot:run` on Windows).
@@ -353,12 +356,34 @@ public class DataInitializer implements CommandLineRunner {
         // ... create Doctor, Hospital, Diagnosis ...
         // ... create Appointment and link to Doctor, Hospital, Diagnosis ...
         // ... create Patient and link to Appointment, Diagnosis ...
+        // ... create Treatment, Medication, Test and link appropriately ...
         // ... save all using repositories ...
-        System.out.println("Sample data initialized: Patient, Doctor, Hospital, Diagnosis, Appointment nodes and relationships created in Neo4j.");
+        System.out.println("Sample data initialized: Patient, Doctor, Hospital, Diagnosis, Appointment, Treatment, Medication, Test nodes and relationships created in Neo4j.");
     }
 }
 ```
 
-This ensures that your Neo4j database is populated with a realistic mini-graph for immediate exploration and development.
+This ensures that your Neo4j database is populated with a realistic mini-graph for immediate exploration and development, including all 8 ontology entities: Patient, Doctor, Hospital, Appointment, Diagnosis, Treatment, Medication, and Test.
+
+## Neo4j Aura User Roles & Permissions
+
+**Important:** To allow the backend to create and view nodes/relationships in Neo4j Aura, your database user must have at least the `editor` or `admin` role. The default `PUBLIC` or `reader` roles are read-only and will result in errors such as:
+
+```
+Failed to check Neo4j version. Application supports Neo4j versions >= 4.4.0. Connecting to an unsupported version may lead to incompatibilities, reduced functionality, unexpected bugs, and other issues. Error: Executing procedure is not allowed for user ... with roles [PUBLIC] overridden by READ.
+```
+
+### How to Fix
+1. Log in to the [Neo4j Aura Console](https://console.neo4j.io/).
+2. Go to your database > Users tab.
+3. Ensure your user has the `editor` or `admin` role.
+4. Update your `application.yml` with the correct username and password.
+5. Restart the backend application.
+
+**Security Note:** For development, `editor` is sufficient. Never use the `admin` user in production code.
+
+### Troubleshooting
+- If you cannot see nodes in Neo4j or get permission errors, check your user role and credentials.
+- After updating credentials, you should be able to see all nodes and relationships created by the backend.
 
 ---

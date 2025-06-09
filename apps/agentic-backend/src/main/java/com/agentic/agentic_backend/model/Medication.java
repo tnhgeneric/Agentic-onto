@@ -18,4 +18,59 @@ public class Medication {
     private Diagnosis diagnosis;
 
     // getters and setters
+    public String getMedicationId() {
+        return medicationId;
+    }
+
+    public void setMedicationId(String medicationId) {
+        this.medicationId = medicationId;
+    }
+
+    public String getDrugName() {
+        return drugName;
+    }
+
+    public void setDrugName(String drugName) {
+        this.drugName = drugName;
+    }
+
+    public String getDosage() {
+        return dosage;
+    }
+
+    public void setDosage(String dosage) {
+        this.dosage = dosage;
+    }
+
+    public String getFrequency() {
+        return frequency;
+    }
+
+    public void setFrequency(String frequency) {
+        this.frequency = frequency;
+    }
+
+    public String getPrescribedDate() {
+        return prescribedDate;
+    }
+
+    public void setPrescribedDate(String prescribedDate) {
+        this.prescribedDate = prescribedDate;
+    }
+
+    public String getAdherence() {
+        return adherence;
+    }
+
+    public void setAdherence(String adherence) {
+        this.adherence = adherence;
+    }
+
+    public Diagnosis getDiagnosis() {
+        return diagnosis;
+    }
+
+    public void setDiagnosis(Diagnosis diagnosis) {
+        this.diagnosis = diagnosis;
+    }
 }
