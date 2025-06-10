@@ -200,7 +200,7 @@ The backend uses Spring Security to protect its endpoints. By default, all endpo
 **Key points:**
 - The `/api/neo4j/health` endpoint is open to everyone (no authentication required).
 - All other endpoints require HTTP Basic authentication.
-- CSRF protection is disabled for simplicity in API use cases.
+- CSRF protection is disabled for simplicity in API use cases. This means the backend does not enforce Cross-Site Request Forgery (CSRF) security checks on its endpoints. For REST APIs that are not accessed directly from browsers, disabling CSRF is generally safe and makes it easier to use tools like Postman or frontend/mobile apps. If you build browser-based forms that use cookies for authentication, you should enable CSRF protection.
 - The security configuration is defined in `SecurityConfig.java`:
 
 ```java
@@ -386,6 +386,111 @@ Failed to check Neo4j version. Application supports Neo4j versions >= 4.4.0. Con
 
 ### Troubleshooting
 - If you cannot see nodes in Neo4j or get permission errors, check your user role and credentials.
+- If you see an error like:
+  ```
+  Failed to check Neo4j version. Application supports Neo4j versions >= 4.4.0. Connecting to an unsupported version may lead to incompatibilities, reduced functionality, unexpected bugs, and other issues. Error: Executing procedure is not allowed for user ... with roles [PUBLIC] overridden by READ.
+  ```
+  This usually means you are connecting with insufficient permissions (the default PUBLIC/reader role). To fix this in Neo4j Aura, use the "Connect with credentials" option and copy the generated token for the neo4j user into your application's configuration (e.g., `application.yml`). This will ensure you have the correct permissions to create and view nodes and relationships.
 - After updating credentials, you should be able to see all nodes and relationships created by the backend.
 
----
+## DTOs (Data Transfer Objects): Beginner-Friendly Explanation and Example
+
+### What is a DTO?
+A **DTO (Data Transfer Object)** is a simple Java class used to transfer data between different parts of an application, especially between the backend and the frontend (API clients). DTOs are not database entities—they are designed to represent only the data you want to expose or accept via your API.
+
+### Why Use DTOs?
+- **Security:** Hide sensitive or internal fields from API consumers. Only expose what is needed.
+- **Decoupling:** Changes to your database/entity model do not break your API contract.
+- **Performance:** Prevent sending large or deeply nested object graphs (e.g., avoid infinite loops from circular relationships).
+- **Validation:** Use DTOs to validate incoming data before mapping to your internal model.
+- **Flexibility:** Shape the API response to fit frontend needs (e.g., flatten, aggregate, or rename fields).
+
+### Example: Patient Entity vs PatientDTO
+
+Suppose your `Patient` entity (used for Neo4j persistence) looks like this:
+```java
+@Node
+public class Patient {
+    @Id
+    private String patientId;
+    private String name;
+    private String dob;
+    private String gender;
+    private List<Appointment> appointments; // relationships
+    private List<Diagnosis> diagnoses;      // relationships
+    // ...other fields and relationships...
+}
+```
+
+If you expose this entity directly via your REST API, the response might include all fields, including relationships and internal data. This can:
+- Leak sensitive or unnecessary information
+- Cause performance issues (large nested objects)
+- Lead to infinite recursion in JSON serialization (circular references)
+
+**With DTOs, you control what is sent to the client.**
+
+A `PatientDTO` might look like:
+```java
+public class PatientDTO {
+    private String patientId;
+    private String name;
+    private String dob;
+    private String gender;
+    // No relationships or internal fields
+}
+```
+
+**API Response Example:**
+```json
+{
+  "patientId": "p123",
+  "name": "John Doe",
+  "dob": "1980-01-01",
+  "gender": "male"
+}
+```
+
+### What Fields Are Filtered?
+- Any field present in the entity but **not** in the DTO is filtered out (not sent to the client).
+- For example, `appointments` and `diagnoses` are present in `Patient` but not in `PatientDTO`, so they are not exposed in the API response.
+
+### How Does Mapping Work?
+A **Mapper** class converts between your entity and DTO:
+```java
+public class PatientMapper {
+    public static PatientDTO toDTO(Patient patient) {
+        if (patient == null) return null;
+        PatientDTO dto = new PatientDTO();
+        dto.setPatientId(patient.getPatientId());
+        dto.setName(patient.getName());
+        dto.setDob(patient.getDob());
+        dto.setGender(patient.getGender());
+        return dto;
+    }
+}
+```
+
+### Summary Table
+| Entity Field      | In DTO? | Exposed to API? |
+|-------------------|---------|-----------------|
+| patientId         | Yes     | Yes             |
+| name              | Yes     | Yes             |
+| dob               | Yes     | Yes             |
+| gender            | Yes     | Yes             |
+| appointments      | No      | No              |
+| diagnoses         | No      | No              |
+| ...other fields   | No      | No              |
+
+### Best Practices
+- Always use DTOs for API input/output, not your entity classes.
+- Only include fields in the DTO that you want to expose or accept.
+- Use mappers to convert between entities and DTOs.
+- Validate incoming DTOs before mapping to entities.
+
+### Where to Find DTOs and Mappers in This Project
+- DTOs: `apps/agentic-backend/src/main/java/com/agentic/agentic_backend/model/*DTO.java`
+- Mappers: `apps/agentic-backend/src/main/java/com/agentic/agentic_backend/model/*Mapper.java`
+
+This approach is used for all ontology entities (Patient, Doctor, Hospital, Appointment, Diagnosis, Treatment, Medication, Test, Alert) in this project.
+
+For more details, see the code and comments in the DTO and Mapper classes.
