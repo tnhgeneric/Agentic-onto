@@ -9,7 +9,7 @@ This folder contains the Spring Boot microservice(s) for the Agentic AI project,
    - `spring-boot-starter-web`
 3. Configure Neo4j Aura connection in `application.properties`:
    ```properties
-   spring.neo4j.uri=bolt+s://<your-neo4j-uri>
+   spring.neo4j.uri=neo4j+s://<your-neo4j-uri>
    spring.neo4j.authentication.username=<username>
    spring.neo4j.authentication.password=<password>
    ```
@@ -20,7 +20,7 @@ This folder contains the Spring Boot microservice(s) for the Agentic AI project,
 
 ## Sample Neo4j Configuration (application.properties)
 ```
-spring.neo4j.uri=bolt+s://<your-neo4j-uri>
+spring.neo4j.uri=neo4j+s://<your-neo4j-uri>
 spring.neo4j.authentication.username=<username>
 spring.neo4j.authentication.password=<password>
 ```
@@ -250,6 +250,7 @@ In this project, the following classes are considered **ontology entities**:
 - Treatment
 - Medication
 - Test
+- Alert
 
 These entities represent real-world healthcare concepts and are modeled as nodes in the Neo4j graph database. Each entity is annotated with `@Node` and may have relationships to other entities, reflecting the semantic structure of the healthcare domain. This approach enables advanced queries and reasoning about patient journeys, diagnoses, treatments, and more.
 
@@ -339,8 +340,9 @@ This project includes a `DataInitializer` class that automatically creates and s
   - A `Treatment` node (linked to diagnosis and/or appointment)
   - A `Medication` node (linked to treatment and/or patient)
   - A `Test` node (linked to appointment and/or patient)
+  - An `Alert` node (linked to patient and/or doctor)
 - All relationships (edges) are set in Java before saving, so Neo4j will persist both the nodes and their connections.
-- After initialization, a log message is printed: `Sample data initialized: Patient, Doctor, Hospital, Diagnosis, Appointment, Treatment, Medication, Test nodes and relationships created in Neo4j.`
+- After initialization, a log message is printed: `Sample data initialized: Patient, Doctor, Hospital, Diagnosis, Appointment, Treatment, Medication, Test, Alert nodes and relationships created in Neo4j.`
 
 **How to use:**
 1. Start the backend application with `./mvnw spring-boot:run` (or `mvnw.cmd spring-boot:run` on Windows).
@@ -358,12 +360,12 @@ public class DataInitializer implements CommandLineRunner {
         // ... create Patient and link to Appointment, Diagnosis ...
         // ... create Treatment, Medication, Test and link appropriately ...
         // ... save all using repositories ...
-        System.out.println("Sample data initialized: Patient, Doctor, Hospital, Diagnosis, Appointment, Treatment, Medication, Test nodes and relationships created in Neo4j.");
+        System.out.println("Sample data initialized: Patient, Doctor, Hospital, Diagnosis, Appointment, Treatment, Medication, Test, Alert nodes and relationships created in Neo4j.");
     }
 }
 ```
 
-This ensures that your Neo4j database is populated with a realistic mini-graph for immediate exploration and development, including all 8 ontology entities: Patient, Doctor, Hospital, Appointment, Diagnosis, Treatment, Medication, and Test.
+This ensures that your Neo4j database is populated with a realistic mini-graph for immediate exploration and development, including all 9 ontology entities: Patient, Doctor, Hospital, Appointment, Diagnosis, Treatment, Medication, Test, and Alert.
 
 ## Neo4j Aura User Roles & Permissions
 

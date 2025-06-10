@@ -25,6 +25,8 @@ public class DataInitializer implements CommandLineRunner {
     private MedicationRepository medicationRepository;
     @Autowired
     private TestRepository testRepository;
+    @Autowired
+    private AlertRepository alertRepository;
 
     @Override
     public void run(String... args) throws Exception {
@@ -110,6 +112,17 @@ public class DataInitializer implements CommandLineRunner {
         test.setStatus("Completed");
         testRepository.save(test);
 
+        // Create Alert
+        Alert alert = new Alert();
+        alert.setAlertId("alert1");
+        alert.setMessage("Patient missed medication dose");
+        alert.setType("MissedMedication");
+        alert.setTimestamp("2024-01-22T09:00:00Z");
+        alert.setResolved(false);
+        alert.setPatient(patient);
+        alert.setDoctor(doctor);
+        alertRepository.save(alert);
+
         // Link Treatment to Medication
         treatment.setMedications(Collections.singletonList(medication));
         treatmentRepository.save(treatment);
@@ -124,6 +137,7 @@ public class DataInitializer implements CommandLineRunner {
 
         // Log a message to indicate data initialization is complete
         System.out
-                .println("Sample data initialized: All 8 ontology entities and their relationships created in Neo4j.");
+                .println(
+                        "Sample data initialized: All 9 ontology entities (including Alert) and their relationships created in Neo4j.");
     }
 }
