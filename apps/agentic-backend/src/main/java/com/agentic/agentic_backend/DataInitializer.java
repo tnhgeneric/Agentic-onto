@@ -57,32 +57,6 @@ public class DataInitializer implements CommandLineRunner {
         diagnosis.setDiagnosedDate("2024-01-15");
         diagnosisRepository.save(diagnosis);
 
-        // Create Appointment
-        Appointment appointment = new Appointment();
-        appointment.setAppointmentId("appt1");
-        appointment.setDate("2024-01-20");
-        appointment.setType("Consultation");
-        appointment.setStatus("Completed");
-        appointment.setDoctor(doctor);
-        appointment.setHospital(hospital);
-        appointment.setDiagnoses(Collections.singletonList(diagnosis));
-        appointmentRepository.save(appointment);
-
-        // Create Patient
-        Patient patient = new Patient();
-        patient.setPatientId("pat1");
-        patient.setName("John Doe");
-        patient.setDob("1980-05-10");
-        patient.setGender("Male");
-        patient.setContactNumber("077-1234567");
-        patient.setAddress("123 Main St, Colombo");
-        patient.setBloodGroup("A+");
-        patient.setInsuranceProvider("Ceylinco");
-        patient.setCurrentStatus("Active");
-        patient.setAppointments(Collections.singletonList(appointment));
-        patient.setDiagnoses(Collections.singletonList(diagnosis));
-        patientRepository.save(patient);
-
         // Create Treatment
         Treatment treatment = new Treatment();
         treatment.setTreatmentId("treat1");
@@ -103,6 +77,17 @@ public class DataInitializer implements CommandLineRunner {
         medication.setDiagnosis(diagnosis);
         medicationRepository.save(medication);
 
+        // Create Appointment
+        Appointment appointment = new Appointment();
+        appointment.setAppointmentId("appt1");
+        appointment.setDate("2024-01-20");
+        appointment.setType("Consultation");
+        appointment.setStatus("Completed");
+        appointment.setDoctor(doctor);
+        appointment.setHospital(hospital);
+        appointment.setDiagnoses(Collections.singletonList(diagnosis));
+        appointmentRepository.save(appointment);
+
         // Create Test
         Test test = new Test();
         test.setTestId("test1");
@@ -119,25 +104,97 @@ public class DataInitializer implements CommandLineRunner {
         alert.setType("MissedMedication");
         alert.setTimestamp("2024-01-22T09:00:00Z");
         alert.setResolved(false);
-        alert.setPatient(patient);
         alert.setDoctor(doctor);
         alertRepository.save(alert);
 
-        // Link Treatment to Medication
-        treatment.setMedications(Collections.singletonList(medication));
-        treatmentRepository.save(treatment);
+        // Relationship entities for Patient
+        HasDiagnosis hasDiagnosis = new HasDiagnosis();
+        hasDiagnosis.setDiagnosedDate("2024-01-15");
+        hasDiagnosis.setDiagnosis(diagnosis);
 
-        // Link Diagnosis to Treatment
-        diagnosis.setTreatments(Collections.singletonList(treatment));
-        diagnosisRepository.save(diagnosis);
+        ReceivesTreatment receivesTreatment = new ReceivesTreatment();
+        receivesTreatment.setStartDate("2024-01-21");
+        receivesTreatment.setEndDate("2024-06-21");
+        receivesTreatment.setTreatment(treatment);
 
-        // Link Appointment to Test
-        appointment.setTests(Collections.singletonList(test));
-        appointmentRepository.save(appointment);
+        TakesMedication takesMedication = new TakesMedication();
+        takesMedication.setPrescribedDate("2024-01-20");
+        takesMedication.setAdherence("Compliant");
+        takesMedication.setMedication(medication);
+
+        HasAppointment hasAppointment = new HasAppointment();
+        hasAppointment.setAppointmentDate("2024-01-20");
+        hasAppointment.setAppointmentType("Consultation");
+        hasAppointment.setStatus("Completed");
+        hasAppointment.setAppointment(appointment);
+
+        UnderwentTest underwentTest = new UnderwentTest();
+        underwentTest.setPerformedDate("2024-01-20");
+        underwentTest.setTest(test);
+
+        AdmittedTo admittedTo = new AdmittedTo();
+        admittedTo.setAdmissionDate("2024-01-19");
+        admittedTo.setDischargeDate("2024-01-21");
+        admittedTo.setHospital(hospital);
+
+        CaredForBy caredForBy = new CaredForBy();
+        caredForBy.setStartDate("2024-01-15");
+        caredForBy.setDoctor(doctor);
+
+        // Create Patient with relationship entities
+        Patient patient = new Patient();
+        patient.setPatientId("pat1");
+        patient.setName("John Doe");
+        patient.setDob("1980-05-10");
+        patient.setGender("Male");
+        patient.setContactNumber("077-1234567");
+        patient.setAddress("123 Main St, Colombo");
+        patient.setBloodGroup("A+");
+        patient.setInsuranceProvider("Ceylinco");
+        patient.setCurrentStatus("Active");
+        patient.setHasDiagnoses(Collections.singletonList(hasDiagnosis));
+        patient.setReceivesTreatments(Collections.singletonList(receivesTreatment));
+        patient.setTakesMedications(Collections.singletonList(takesMedication));
+        patient.setHasAppointments(Collections.singletonList(hasAppointment));
+        patient.setUnderwentTests(Collections.singletonList(underwentTest));
+        patient.setAdmittedTos(Collections.singletonList(admittedTo));
+        patient.setCaredForBys(Collections.singletonList(caredForBy));
+        patientRepository.save(patient);
+
+        // Link Alert to Patient after patient is saved
+        alert.setPatient(patient);
+        alertRepository.save(alert);
+
+        // Relationship entities for Doctor
+        PracticesAt practicesAt = new PracticesAt();
+        practicesAt.setStartDate("2024-01-01");
+        practicesAt.setHospital(hospital);
+
+        Performed performed = new Performed();
+        performed.setPerformedDate("2024-01-21");
+        performed.setTreatment(treatment);
+
+        Ordered ordered = new Ordered();
+        ordered.setOrderedDate("2024-01-20");
+        ordered.setTest(test);
+
+        Prescribed prescribed = new Prescribed();
+        prescribed.setPrescribedDate("2024-01-20");
+        prescribed.setMedication(medication);
+
+        Consulted consulted = new Consulted();
+        consulted.setConsultationDate("2024-01-20");
+        consulted.setPatient(patient);
+
+        doctor.setPracticesAts(Collections.singletonList(practicesAt));
+        doctor.setPerformeds(Collections.singletonList(performed));
+        doctor.setOrdereds(Collections.singletonList(ordered));
+        doctor.setPrescribeds(Collections.singletonList(prescribed));
+        doctor.setConsulteds(Collections.singletonList(consulted));
+        doctorRepository.save(doctor);
 
         // Log a message to indicate data initialization is complete
-        System.out
-                .println(
-                        "Sample data initialized: All 9 ontology entities (including Alert) and their relationships created in Neo4j.");
+        System.out.println(
+                "Sample data initialized: All 9 ontology entities (including Alert) and their property-rich relationships created in Neo4j.");
     }
 }

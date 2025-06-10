@@ -95,11 +95,26 @@ public class Patient {
     private String insuranceProvider;
     private String currentStatus;
 
-    @Relationship(type = "HAS_APPOINTMENT")
-    private List<Appointment> appointments;
-
     @Relationship(type = "HAS_DIAGNOSIS")
-    private List<Diagnosis> diagnoses;
+    private List<HasDiagnosis> hasDiagnoses;
+
+    @Relationship(type = "RECEIVES_TREATMENT")
+    private List<ReceivesTreatment> receivesTreatments;
+
+    @Relationship(type = "TAKES_MEDICATION")
+    private List<TakesMedication> takesMedications;
+
+    @Relationship(type = "HAS_APPOINTMENT")
+    private List<HasAppointment> hasAppointments;
+
+    @Relationship(type = "UNDERWENT_TEST")
+    private List<UnderwentTest> underwentTests;
+
+    @Relationship(type = "ADMITTED_TO")
+    private List<AdmittedTo> admittedTos;
+
+    @Relationship(type = "CARED_FOR_BY")
+    private List<CaredForBy> caredForBys;
 
     // getters and setters
     public String getPatientId() {
@@ -174,19 +189,59 @@ public class Patient {
         this.currentStatus = currentStatus;
     }
 
-    public List<Appointment> getAppointments() {
-        return appointments;
+    public List<HasDiagnosis> getHasDiagnoses() {
+        return hasDiagnoses;
     }
 
-    public void setAppointments(List<Appointment> appointments) {
-        this.appointments = appointments;
+    public void setHasDiagnoses(List<HasDiagnosis> hasDiagnoses) {
+        this.hasDiagnoses = hasDiagnoses;
     }
 
-    public List<Diagnosis> getDiagnoses() {
-        return diagnoses;
+    public List<ReceivesTreatment> getReceivesTreatments() {
+        return receivesTreatments;
     }
 
-    public void setDiagnoses(List<Diagnosis> diagnoses) {
-        this.diagnoses = diagnoses;
+    public void setReceivesTreatments(List<ReceivesTreatment> receivesTreatments) {
+        this.receivesTreatments = receivesTreatments;
+    }
+
+    public List<TakesMedication> getTakesMedications() {
+        return takesMedications;
+    }
+
+    public void setTakesMedications(List<TakesMedication> takesMedications) {
+        this.takesMedications = takesMedications;
+    }
+
+    public List<HasAppointment> getHasAppointments() {
+        return hasAppointments;
+    }
+
+    public void setHasAppointments(List<HasAppointment> hasAppointments) {
+        this.hasAppointments = hasAppointments;
+    }
+
+    public List<UnderwentTest> getUnderwentTests() {
+        return underwentTests;
+    }
+
+    public void setUnderwentTests(List<UnderwentTest> underwentTests) {
+        this.underwentTests = underwentTests;
+    }
+
+    public List<AdmittedTo> getAdmittedTos() {
+        return admittedTos;
+    }
+
+    public void setAdmittedTos(List<AdmittedTo> admittedTos) {
+        this.admittedTos = admittedTos;
+    }
+
+    public List<CaredForBy> getCaredForBys() {
+        return caredForBys;
+    }
+
+    public void setCaredForBys(List<CaredForBy> caredForBys) {
+        this.caredForBys = caredForBys;
     }
 }

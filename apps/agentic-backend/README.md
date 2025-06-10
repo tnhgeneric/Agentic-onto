@@ -494,3 +494,226 @@ public class PatientMapper {
 This approach is used for all ontology entities (Patient, Doctor, Hospital, Appointment, Diagnosis, Treatment, Medication, Test, Alert) in this project.
 
 For more details, see the code and comments in the DTO and Mapper classes.
+
+---
+
+## Visualizing All Nodes and Relationships in Neo4j
+
+To see all nodes and their relationships in your Neo4j database, use one of the following methods:
+
+### 1. Neo4j Browser (Web UI)
+- Open the Neo4j Browser (usually at https://<your-neo4j-instance>:7474).
+- Run this Cypher query to display all nodes and relationships:
+  ```
+  MATCH (n)-[r]->(m) RETURN n, r, m
+  ```
+  Or, to include isolated nodes (without relationships):
+  ```
+  MATCH (n) OPTIONAL MATCH (n)-[r]->(m) RETURN n, r, m
+  ```
+- This will show a graph visualization of all nodes and their relationships.
+
+### 2. Neo4j Bloom (Advanced Visualization)
+- If you have access to Neo4j Bloom, you can use it for more advanced and user-friendly graph exploration.
+- You can search for `*` or use patterns to explore the graph visually.
+
+### 3. Cypher Shell/CLI
+- You can run the same Cypher queries from the Neo4j Cypher Shell or any Neo4j client.
+
+### 4. Programmatically (Spring Data)
+- You can expose a REST endpoint in your Spring Boot app to run a custom Cypher query and return the results, but for visualization, the Neo4j Browser is the best tool.
+
+**Tip:** For large graphs, you may want to limit the number of nodes:
+```
+MATCH (n)-[r]->(m) RETURN n, r, m LIMIT 100
+```
+
+---
+
+## DataInitializer: Property-Rich Relationship Entities
+
+The `DataInitializer` class now demonstrates how to create and persist property-rich relationship entities for advanced patient journey tracking. Instead of simple direct relationships, the following relationship entities are used:
+- `HasDiagnosis` (with `diagnosedDate`)
+- `ReceivesTreatment` (with `startDate`, `endDate`)
+- `TakesMedication` (with `prescribedDate`, `adherence`)
+- `HasAppointment` (with `appointmentDate`, `appointmentType`, `status`)
+- `UnderwentTest` (with `performedDate`)
+- `AdmittedTo` (with `admissionDate`, `dischargeDate`)
+- `CaredForBy` (with `startDate`)
+
+**Example (simplified):**
+```java
+// Relationship entities for Patient
+HasDiagnosis hasDiagnosis = new HasDiagnosis();
+hasDiagnosis.setDiagnosedDate("2024-01-15");
+hasDiagnosis.setDiagnosis(diagnosis);
+
+ReceivesTreatment receivesTreatment = new ReceivesTreatment();
+receivesTreatment.setStartDate("2024-01-21");
+receivesTreatment.setEndDate("2024-06-21");
+receivesTreatment.setTreatment(treatment);
+
+TakesMedication takesMedication = new TakesMedication();
+takesMedication.setPrescribedDate("2024-01-20");
+takesMedication.setAdherence("Compliant");
+takesMedication.setMedication(medication);
+
+// ... other relationship entities ...
+
+Patient patient = new Patient();
+patient.setHasDiagnoses(Collections.singletonList(hasDiagnosis));
+patient.setReceivesTreatments(Collections.singletonList(receivesTreatment));
+patient.setTakesMedications(Collections.singletonList(takesMedication));
+// ... set other relationships ...
+patientRepository.save(patient);
+```
+
+This approach enables modeling of property-rich relationships, supporting advanced queries and analytics for patient journey tracking.
+
+---
+
+## Doctor Relationships: Property-Rich Relationship Entities
+
+The ontology and backend now support advanced, property-rich relationships for the Doctor entity, enabling detailed modeling of a doctor's activities and interactions in the healthcare graph. The following relationship entities are used:
+
+- **PRACTICES_AT**: `Doctor --(startDate: date)--> Hospital`
+- **PERFORMED**: `Doctor --(performedDate: date)--> Treatment`
+- **ORDERED**: `Doctor --(orderedDate: date)--> Test`
+- **PRESCRIBED**: `Doctor --(prescribedDate: date)--> Medication`
+- **CONSULTED**: `Doctor --(consultationDate: date)--> Patient` (or link to an Appointment node)
+
+Each of these is represented by a dedicated class annotated with `@RelationshipProperties`, and referenced in the `Doctor` class as a list or collection. This enables queries such as:
+- Which hospitals has a doctor practiced at, and when?
+- What treatments has a doctor performed?
+- What tests has a doctor ordered?
+- What medications has a doctor prescribed?
+- Which patients (or appointments) has a doctor consulted, and when?
+
+**Example usage in the Doctor model:**
+```java
+@Relationship(type = "PRACTICES_AT")
+private List<PracticesAt> practicesAts;
+@Relationship(type = "PERFORMED")
+private List<Performed> performeds;
+@Relationship(type = "ORDERED")
+private List<Ordered> ordereds;
+@Relationship(type = "PRESCRIBED")
+private List<Prescribed> prescribeds;
+@Relationship(type = "CONSULTED")
+private List<Consulted> consulteds;
+```
+
+**Example relationship property class:**
+```java
+@RelationshipProperties
+public class PracticesAt {
+    @Id @GeneratedValue
+    private Long id;
+    private String startDate;
+    @TargetNode
+    private Hospital hospital;
+    // ...
+}
+```
+
+This approach enables rich, queryable, and property-rich relationships for the Doctor node, supporting advanced analytics and patient journey tracking.
+
+---
+
+## Hospital Relationships: Property-Rich Relationship Entities
+
+The Hospital node now supports advanced, property-rich relationships for a more expressive healthcare graph. These relationships are modeled using `@RelationshipProperties` classes, allowing you to store additional data on the edge itself. The following relationships are implemented:
+
+- **OFFERS_SERVICE**: `Hospital --(serviceName: name)--> Service` (see `OffersService`)
+- **HAS_DEPARTMENT**: `Hospital --(:HAS_DEPARTMENT)--> Department` (see `HasDepartment`)
+- **HOSTS**: `Hospital --(:HOSTS)--> Appointment` (see `Hosts`)
+- **PERFORMED_AT**: `Treatment --(performedDate: date)--> Hospital` (see `PerformedAt`)
+- **CONDUCTED_AT**: `Test --(performedDate: date)--> Hospital` (see `ConductedAt`)
+
+Each of these is represented by a dedicated class annotated with `@RelationshipProperties`, and referenced in the relevant node class as a list or collection. This enables queries such as:
+- What services does a hospital offer?
+- What departments exist in a hospital?
+- Which appointments are hosted at a hospital?
+- Where was a treatment performed?
+- Where was a test conducted?
+
+**Example usage in the Hospital model:**
+```java
+@Relationship(type = "OFFERS_SERVICE")
+private List<OffersService> offersServices;
+@Relationship(type = "HAS_DEPARTMENT")
+private List<HasDepartment> hasDepartments;
+@Relationship(type = "HOSTS")
+private List<Hosts> hosts;
+```
+
+**Example relationship property class:**
+```java
+@RelationshipProperties
+public class OffersService {
+    @Id @GeneratedValue
+    private Long id;
+    private String serviceName;
+    @TargetNode
+    private Service service;
+    // ...
+}
+```
+
+This approach enables rich, queryable, and property-rich relationships for the Hospital node, supporting advanced analytics and healthcare resource modeling.
+
+---
+
+## Understanding @Node vs @RelationshipProperties in Spring Data Neo4j
+
+- `@Node` is used to annotate classes that represent entities (nodes) in the Neo4j graph, such as `Patient`, `Doctor`, `Hospital`, `Alert`, etc. These are the main data objects in your domain.
+- `@RelationshipProperties` is used to annotate classes that represent property-rich relationships (edges) between nodes. These classes are not nodes themselves, but allow you to store additional data on the relationship, such as dates, status, or other attributes.
+
+### Example: Node vs RelationshipProperties
+
+```java
+@Node
+public class Alert {
+    @Id
+    private String alertId;
+    // ... fields ...
+    @Relationship(type = "FOR_PATIENT")
+    private Patient patient;
+    @Relationship(type = "FOR_DOCTOR")
+    private Doctor doctor;
+    // ...
+}
+```
+- Here, `Alert` is a node with simple relationships to `Patient` and `Doctor`. These relationships do not have extra properties, so no `@RelationshipProperties` class is needed.
+
+```java
+@RelationshipProperties
+public class HasAppointment {
+    @Id @GeneratedValue
+    private Long id;
+    private String appointmentDate;
+    private String appointmentType;
+    private String status;
+    @TargetNode
+    private Appointment appointment;
+    // ...
+}
+```
+- Here, `HasAppointment` is a property-rich relationship between a `Patient` and an `Appointment`, storing extra data about the relationship itself.
+
+### How to Identify Nodes with Property-Rich Relationships
+- Look for fields in your `@Node` classes that are of a type annotated with `@RelationshipProperties` (not another `@Node`).
+- These fields represent relationships with properties (property-rich relationships).
+- The properties are defined in the `@RelationshipProperties` class, not on the node itself.
+
+### Summary Table
+| Annotation                | Purpose                                  | Example Classes                |
+|---------------------------|------------------------------------------|-------------------------------|
+| `@Node`                   | Graph node/entity                        | Patient, Doctor, Alert, etc.  |
+| `@RelationshipProperties` | Property-rich relationship (edge) class  | HasAppointment, CaredForBy, etc. |
+
+- Nodes with fields referencing `@RelationshipProperties` classes have property-rich relationships.
+- Simple relationships (without extra properties) are just annotated with `@Relationship` and point to another `@Node` class.
+- If you need to store data on a relationship, use a `@RelationshipProperties` class.
+
+---
