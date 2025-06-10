@@ -14,7 +14,7 @@ public class Diagnosis {
     private String diagnosedDate;
 
     @Relationship(type = "LEADS_TO")
-    private List<Treatment> treatments;
+    private List<LeadsTo> leadsTos;
 
     // getters and setters
     public String getDiagnosisId() {
@@ -49,11 +49,11 @@ public class Diagnosis {
         this.diagnosedDate = diagnosedDate;
     }
 
-    public java.util.List<Treatment> getTreatments() {
-        return treatments;
+    public java.util.List<LeadsTo> getLeadsTos() {
+        return leadsTos;
     }
 
-    public void setTreatments(java.util.List<Treatment> treatments) {
-        this.treatments = treatments;
+    public void setLeadsTos(java.util.List<LeadsTo> leadsTos) {
+        this.leadsTos = leadsTos;
     }
 }

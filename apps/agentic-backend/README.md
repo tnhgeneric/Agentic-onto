@@ -493,8 +493,6 @@ public class PatientMapper {
 
 This approach is used for all ontology entities (Patient, Doctor, Hospital, Appointment, Diagnosis, Treatment, Medication, Test, Alert) in this project.
 
-For more details, see the code and comments in the DTO and Mapper classes.
-
 ---
 
 ## Visualizing All Nodes and Relationships in Neo4j
@@ -715,5 +713,98 @@ public class HasAppointment {
 - Nodes with fields referencing `@RelationshipProperties` classes have property-rich relationships.
 - Simple relationships (without extra properties) are just annotated with `@Relationship` and point to another `@Node` class.
 - If you need to store data on a relationship, use a `@RelationshipProperties` class.
+
+---
+
+## Event/Journey Relationships: Property-Rich Relationship Entities
+
+The ontology now supports advanced event/journey relationships for tracking the flow of healthcare events and patient journeys. These relationships are modeled using `@RelationshipProperties` classes, allowing you to store additional data on the edge itself. The following relationships are implemented:
+
+- **RESULTED_IN**: `Test --(resultImpact: impact)--> Diagnosis` (see `ResultedIn`)
+- **FOR_DIAGNOSIS**: `Treatment --(:FOR_DIAGNOSIS)--> Diagnosis` (see `ForDiagnosis`)
+- **FOR_TREATMENT**: `Medication --(:FOR_TREATMENT)--> Treatment` (see `ForTreatment`)
+- **LEADS_TO**: `Diagnosis --(:LEADS_TO)--> Treatment` (see `LeadsTo`)
+- **FOLLOWS_UP**: `Appointment --(:FOLLOWS_UP)--> Treatment or Diagnosis` (see `FollowsUp`)
+
+Each of these is represented by a dedicated class annotated with `@RelationshipProperties`, and referenced in the relevant node class as a list or collection. This enables queries such as:
+- Which test results led to which diagnoses?
+- What treatments are for which diagnoses?
+- Which medications are for which treatments?
+- What are the recommended treatment pathways for a diagnosis?
+- Which appointments are follow-ups for treatments or diagnoses?
+
+**Example usage in the model classes:**
+```java
+// In Test.java
+@Relationship(type = "RESULTED_IN")
+private List<ResultedIn> resultedIns;
+
+// In Diagnosis.java
+@Relationship(type = "LEADS_TO")
+private List<LeadsTo> leadsTos;
+
+// In Treatment.java
+@Relationship(type = "FOR_DIAGNOSIS")
+private List<ForDiagnosis> forDiagnoses;
+@Relationship(type = "FOR_TREATMENT")
+private List<ForTreatment> forTreatments;
+
+// In Medication.java
+@Relationship(type = "FOR_TREATMENT")
+private List<ForTreatment> forTreatments;
+
+// In Appointment.java
+@Relationship(type = "FOLLOWS_UP")
+private List<FollowsUp> followsUps;
+```
+
+**Example relationship property class:**
+```java
+@RelationshipProperties
+public class ResultedIn {
+    @Id @GeneratedValue
+    private Long id;
+    private String resultImpact;
+    @TargetNode
+    private Diagnosis diagnosis;
+    // ...
+}
+```
+
+This approach enables rich, queryable, and property-rich event/journey relationships, supporting advanced analytics and patient journey tracking in the healthcare graph.
+
+---
+
+## Example: Property-Rich Relationship DTO and Mapper
+
+To expose property-rich relationships (such as `LeadsTo`) in your API, use DTO and Mapper classes. This ensures only the necessary data is sent to the client and avoids exposing internal model details.
+
+**LeadsToDTO.java**
+```java
+public class LeadsToDTO {
+    private Long id;
+    private String treatmentId;
+    private String treatmentName;
+    // getters and setters
+}
+```
+
+**LeadsToMapper.java**
+```java
+public class LeadsToMapper {
+    public static LeadsToDTO toDTO(LeadsTo leadsTo) {
+        if (leadsTo == null) return null;
+        LeadsToDTO dto = new LeadsToDTO();
+        dto.setId(leadsTo.getId());
+        if (leadsTo.getTreatment() != null) {
+            dto.setTreatmentId(leadsTo.getTreatment().getTreatmentId());
+            dto.setTreatmentName(leadsTo.getTreatment().getName());
+        }
+        return dto;
+    }
+}
+```
+
+This pattern is used for all property-rich relationship entities in the ontology (such as `ResultedIn`, `ForDiagnosis`, `ForTreatment`, `FollowsUp`, etc.), ensuring clean API responses and separation of concerns.
 
 ---

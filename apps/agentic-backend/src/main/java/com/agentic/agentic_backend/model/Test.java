@@ -2,6 +2,9 @@ package com.agentic.agentic_backend.model;
 
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
+import org.springframework.data.neo4j.core.schema.Relationship;
+
+import java.util.List;
 
 @Node
 public class Test {
@@ -11,6 +14,9 @@ public class Test {
     private String result;
     private String date;
     private String status;
+
+    @Relationship(type = "RESULTED_IN")
+    private List<ResultedIn> resultedIns;
 
     // getters and setters
     public String getTestId() {
@@ -51,5 +57,13 @@ public class Test {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public List<ResultedIn> getResultedIns() {
+        return resultedIns;
+    }
+
+    public void setResultedIns(List<ResultedIn> resultedIns) {
+        this.resultedIns = resultedIns;
     }
 }

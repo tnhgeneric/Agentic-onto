@@ -1,5 +1,7 @@
 package com.agentic.agentic_backend.model;
 
+import java.util.List;
+
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Relationship;
@@ -16,6 +18,9 @@ public class Medication {
 
     @Relationship(type = "FOR_DIAGNOSIS")
     private Diagnosis diagnosis;
+
+    @Relationship(type = "FOR_TREATMENT")
+    private List<ForTreatment> forTreatments;
 
     // getters and setters
     public String getMedicationId() {
@@ -72,5 +77,13 @@ public class Medication {
 
     public void setDiagnosis(Diagnosis diagnosis) {
         this.diagnosis = diagnosis;
+    }
+
+    public List<ForTreatment> getForTreatments() {
+        return forTreatments;
+    }
+
+    public void setForTreatments(List<ForTreatment> forTreatments) {
+        this.forTreatments = forTreatments;
     }
 }

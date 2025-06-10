@@ -193,6 +193,40 @@ public class DataInitializer implements CommandLineRunner {
         doctor.setConsulteds(Collections.singletonList(consulted));
         doctorRepository.save(doctor);
 
+        // --- Event/Journey Relationships ---
+        // Test RESULTED_IN Diagnosis
+        ResultedIn resultedIn = new ResultedIn();
+        resultedIn.setResultImpact("Confirmed hypertension");
+        resultedIn.setDiagnosis(diagnosis);
+        test.setResultedIns(Collections.singletonList(resultedIn));
+        testRepository.save(test);
+
+        // Diagnosis LEADS_TO Treatment
+        LeadsTo leadsTo = new LeadsTo();
+        leadsTo.setTreatment(treatment);
+        diagnosis.setLeadsTos(Collections.singletonList(leadsTo));
+        diagnosisRepository.save(diagnosis);
+
+        // Treatment FOR_DIAGNOSIS
+        ForDiagnosis forDiagnosis = new ForDiagnosis();
+        forDiagnosis.setDiagnosis(diagnosis);
+        treatment.setForDiagnoses(Collections.singletonList(forDiagnosis));
+
+        // Treatment FOR_TREATMENT (for Medication)
+        ForTreatment forTreatment = new ForTreatment();
+        forTreatment.setTreatment(treatment);
+        medication.setForTreatments(Collections.singletonList(forTreatment));
+        medicationRepository.save(medication);
+
+        // Appointment FOLLOWS_UP Treatment
+        FollowsUp followsUp = new FollowsUp();
+        followsUp.setTarget(treatment); // or diagnosis
+        appointment.setFollowsUps(Collections.singletonList(followsUp));
+        appointmentRepository.save(appointment);
+
+        // Save Treatment with new relationships
+        treatmentRepository.save(treatment);
+
         // Log a message to indicate data initialization is complete
         System.out.println(
                 "Sample data initialized: All 9 ontology entities (including Alert) and their property-rich relationships created in Neo4j.");
