@@ -8,12 +8,14 @@ This backend powers an agentic AI for healthcare, focused on patient journey tra
 
 ```mermaid
 graph TD
-    A["React Frontend (Mobile/Web App)"] -- "1" --> B["Python FastAPI Microservice (LLM/Agentic AI)"]
-    B -- "2" --> C["LLM Provider (Google Vertex AI, OpenAI, etc.)"]
-    C -- "3" --> D["Neo4j Aura (Knowledge Graph)"]
-    D -- "4" --> C
-    C -- "5" --> B
-    B -- "6" --> A
+    A["React Frontend (Mobile/Web App)"] -- "1" --> B["Python FastAPI Microservice"]
+    B -- "2" --> F["LangChain (Framework)"]
+    F -- "3" --> C["LLM Provider (Google Vertex AI, OpenAI, etc.)"]
+    C -- "4" --> D["Neo4j Aura (Knowledge Graph)"]
+    D -- "5" --> C
+    C -- "6" --> F
+    F -- "7" --> B
+    B -- "8" --> A
     E["Spring Boot Backend (Java, Neo4j CRUD)"]
     A -- "A" --> E
     E -- "B" --> D
@@ -23,18 +25,21 @@ graph TD
 
 ### Legend
 - **React Frontend:** User interface for patients, doctors, admins (mobile/web).
-- **Python FastAPI Microservice:** Handles LLM/agentic AI features, prompt processing, and advanced reasoning.
+- **Python FastAPI Microservice:** API gateway and orchestration for LLM/agentic features.
+- **LangChain (Framework):** Orchestrates prompt flows, agent logic, tool-calling, and connects to LLM providers.
 - **LLM Provider:** Google Vertex AI (PaLM, Gemini) or OpenAI for LLM-powered features.
 - **Neo4j Aura:** Cloud graph database for healthcare ontology and patient journeys.
 - **Spring Boot Backend:** Handles business logic, CRUD, security, and Neo4j graph operations (not in LLM prompt loop).
 
 ### Prompt Flow Steps
 1. **1:** User prompt sent from frontend to FastAPI microservice.
-2. **2:** FastAPI sends prompt to LLM Provider (Vertex/OpenAI).
-3. **3:** LLM Provider queries Neo4j Aura if needed.
-4. **4:** Neo4j Aura returns result to LLM Provider.
-5. **5:** LLM Provider sends processed result to FastAPI.
-6. **6:** FastAPI returns final answer to frontend.
+2. **2:** FastAPI passes prompt to LangChain framework.
+3. **3:** LangChain sends prompt to LLM Provider (Vertex/OpenAI).
+4. **4:** LLM Provider queries Neo4j Aura if needed.
+5. **5:** Neo4j Aura returns result to LLM Provider.
+6. **6:** LLM Provider sends processed result to LangChain.
+7. **7:** LangChain returns result to FastAPI.
+8. **8:** FastAPI returns final answer to frontend.
 
 ### CRUD/Business Logic Flow Steps
 - **A:** Frontend requests backend to update the DB.
@@ -43,8 +48,9 @@ graph TD
 - **D:** Backend sends message to frontend.
 
 **Notes:**
-- The main prompt flow is indicated by numbered arrows: 1 → 2 → 3 → 4 → 5 → 6.
+- The main prompt flow is indicated by numbered arrows: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8.
 - The CRUD/business logic flow is indicated by letters: A → B → C → D.
+- LangChain is now explicitly shown as the orchestration layer between FastAPI and the LLM provider.
 - Arrows show both request and response directions for all major API flows.
 
 ---
@@ -1000,4 +1006,11 @@ graph TD
 - The arrow between Python FastAPI and LLM Provider is dual-headed, representing request/response (bidirectional) communication.
 - The architecture supports modular, scalable, and industry-aligned agentic AI development.
 ````
-- look at the  README.html
+
+---
+
+## System Architecture Diagram (Eraser)
+
+![System Architecture](assets/Basic%20Architecture%20diagram.png)
+
+---
