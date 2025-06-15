@@ -1,3 +1,22 @@
 {
-    "java.compile.nullAnalysis.mode": "automatic"
+    "java.compile.nullAnalysis.mode": "automatic",
+    "sqltools.connections": [
+        {
+            "oracleOptions": {
+                "privilege": "SYSDBA",
+                "thickMode": false,
+                "autoCommit": false,
+                "lowerCase": false,
+                "limitPrefetchRows": false
+            },
+            "previewLimit": 50,
+            "server": "192.168.1.30",
+            "port": 1521,
+            "driver": "Oracle",
+            "name": "oracle23",
+            "database": "free",
+            "username": "sys",
+            "password": "oracle"
+        }
+    ]
 }
