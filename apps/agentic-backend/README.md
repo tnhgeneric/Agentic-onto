@@ -4,6 +4,12 @@ This backend powers an agentic AI for healthcare, focused on patient journey tra
 
 ---
 
+## System Architecture Diagram (Eraser)
+
+![System Architecture](assets/Basic%20Architecture%20diagram.png)
+
+---
+
 ## System Architecture Diagram (Prompt Flow)
 
 ```mermaid
@@ -1009,8 +1015,105 @@ graph TD
 
 ---
 
-## System Architecture Diagram (Eraser)
+## LLM Integration: FastAPI + LangChain + Vertex AI (Gemini)
 
-![System Architecture](assets/Basic%20Architecture%20diagram.png)
+This section explains, step by step, how to set up a Python FastAPI microservice that uses LangChain to orchestrate prompts to Google Vertex AI's Gemini LLMs.
+
+### Step 1: Create the LLM Microservice Directory
+
+```
+cd apps/agentic-backend
+mkdir agentic-llm-service
+cd agentic-llm-service
+```
+
+### Step 2: Set Up a Python Virtual Environment
+
+```
+python -m venv venv
+venv\Scripts\activate  # On Windows
+# or
+source venv/bin/activate  # On macOS/Linux
+```
+
+### Step 3: Install Required Packages
+
+```
+pip install fastapi uvicorn langchain langchain-google-vertexai google-auth
+```
+
+### Step 4: Set Up Google Cloud Credentials
+
+- In the Google Cloud Console, create a service account with Vertex AI permissions and download the JSON key file.
+- Set the environment variable in your terminal (replace the path with your actual file):
+  - On Windows Command Prompt:
+    ```
+    set GOOGLE_APPLICATION_CREDENTIALS=E:\ITTrends\S-Accounts\your-service-account.json
+    ```
+  - On PowerShell:
+    ```
+    $env:GOOGLE_APPLICATION_CREDENTIALS="E:\ITTrends\S-Accounts\your-service-account.json"
+    ```
+  - On macOS/Linux:
+    ```
+    export GOOGLE_APPLICATION_CREDENTIALS="/path/to/your-service-account.json"
+    ```
+
+### Step 5: Enable Vertex AI API and Billing
+
+- In the Google Cloud Console, enable the Vertex AI API for your project.
+- Make sure billing is enabled for your project.
+
+### Step 6: Create the FastAPI App
+
+Create a file named `main.py` in `agentic-llm-service` with the following code:
+
+```python
+from fastapi import FastAPI, Body
+from langchain_google_vertexai import ChatVertexAI
+
+app = FastAPI()
+
+llm = ChatVertexAI(
+    model="gemini-2.5-pro",  # latest Gemini model
+    temperature=0.2,
+    max_output_tokens=512,
+    location="us-central1"
+)
+
+@app.post("/ask")
+async def ask(prompt: str = Body(..., embed=True)):
+    response = llm.invoke(prompt)
+    return {"response": response.content}
+```
+
+### Step 7: Run the FastAPI App
+
+```
+uvicorn main:app --reload
+```
+
+- The app will be available at `http://localhost:8000`.
+
+### Step 8: Test the LLM Endpoint
+
+Send a POST request to `/ask` with a JSON body:
+
+```
+curl -X POST "http://127.0.0.1:8000/ask" -H "Content-Type: application/json" -d "{\"prompt\": \"What is the capital of France?\"}"
+```
+
+**Expected response:**
+```
+{"response": "The capital of France is **Paris**."}
+```
+
+---
+
+**Notes for Beginners:**
+- Make sure your virtual environment is activated whenever you work on this project.
+- If you see errors about missing modules, check that you installed packages in the correct environment.
+- If you get permission or model errors, double-check your Google Cloud setup, API enablement, and billing status.
+- You can now build more endpoints, add error handling, or connect this microservice to your main app!
 
 ---
