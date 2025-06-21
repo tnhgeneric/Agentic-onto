@@ -1117,3 +1117,46 @@ curl -X POST "http://127.0.0.1:8000/ask" -H "Content-Type: application/json" -d 
 - You can now build more endpoints, add error handling, or connect this microservice to your main app!
 
 ---
+
+## LLM Microservice: Neo4j Integration & Agentic Reasoning
+
+### Overview
+The Python FastAPI microservice integrates Google Vertex AI (via LangChain) with Neo4j Aura to enable agentic, context-aware responses. When a user prompt mentions a patient (e.g., "John Doe"), the service:
+1. Extracts the patient name from the prompt.
+2. Queries Neo4j for the patient's journey (admissions, diagnoses, treatments, etc.).
+3. Formats the journey into a human-readable summary.
+4. Passes this context, along with the original prompt, to the LLM for a personalized answer.
+
+### main.py Key Logic
+- **Neo4j Connection:** Uses environment variables for secure credentials.
+- **Patient Name Extraction:** Uses regex to find names in prompts.
+- **Journey Query & Formatting:** Retrieves and summarizes all related events for the patient.
+- **/ask Endpoint:** Combines journey context and user question for the LLM.
+
+### Example Usage
+**Request:**
+```bash
+curl -X POST "http://127.0.0.1:8000/ask" \
+     -H "Content-Type: application/json" \
+     -d '{"prompt": "What is the status of John Doe?"}'
+```
+**Response:**
+```json
+{
+  "response": "John Doe is currently admitted to City General Hospital at Colombo.",
+  "context": "Patient John Doe journey: Admitted to City General Hospital at Colombo"
+}
+```
+
+### How It Works
+- The agentic AI doesn't just answer from memory—it actively queries the knowledge graph for up-to-date, personalized information, then reasons over it to generate a trustworthy response.
+
+### Environment Variables
+Set these before starting the service:
+```cmd
+set NEO4J_URI=neo4j+s://<your-neo4j-instance>.databases.neo4j.io
+set NEO4J_USER=neo4j
+set NEO4J_PASSWORD=your-strong-password
+```
+
+---

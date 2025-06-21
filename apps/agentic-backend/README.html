@@ -67,6 +67,43 @@
     - Arrows show both request and response directions for all major API flows.
   </p>
   <hr>
+  <h2>LLM Microservice: Neo4j Integration & Agentic Reasoning</h2>
+  <h3>Overview</h3>
+  <p>The Python FastAPI microservice integrates Google Vertex AI (via LangChain) with Neo4j Aura to enable agentic, context-aware responses. When a user prompt mentions a patient (e.g., "John Doe"), the service:</p>
+  <ol>
+    <li>Extracts the patient name from the prompt.</li>
+    <li>Queries Neo4j for the patient's journey (admissions, diagnoses, treatments, etc.).</li>
+    <li>Formats the journey into a human-readable summary.</li>
+    <li>Passes this context, along with the original prompt, to the LLM for a personalized answer.</li>
+  </ol>
+  <h3>main.py Key Logic</h3>
+  <ul>
+    <li><b>Neo4j Connection:</b> Uses environment variables for secure credentials.</li>
+    <li><b>Patient Name Extraction:</b> Uses regex to find names in prompts.</li>
+    <li><b>Journey Query & Formatting:</b> Retrieves and summarizes all related events for the patient.</li>
+    <li><b>/ask Endpoint:</b> Combines journey context and user question for the LLM.</li>
+  </ul>
+  <h3>Example Usage</h3>
+  <pre><code>curl -X POST "http://127.0.0.1:8000/ask" ^
+     -H "Content-Type: application/json" ^
+     -d '{"prompt": "What is the status of John Doe?"}'
+  </code></pre>
+  <p><b>Sample Response:</b></p>
+  <pre><code>{
+  "response": "John Doe is currently admitted to City General Hospital at Colombo.",
+  "context": "Patient John Doe journey: Admitted to City General Hospital at Colombo"
+}
+  </code></pre>
+  <h3>How It Works</h3>
+  <ul>
+    <li>The agentic AI doesn't just answer from memory—it actively queries the knowledge graph for up-to-date, personalized information, then reasons over it to generate a trustworthy response.</li>
+  </ul>
+  <h3>Environment Variables</h3>
+  <pre><code>set NEO4J_URI=neo4j+s://&lt;your-neo4j-instance&gt;.databases.neo4j.io
+set NEO4J_USER=neo4j
+set NEO4J_PASSWORD=your-strong-password
+  </code></pre>
+  <hr>
   <p><i>For the full documentation, please refer to the original README.md file.</i></p>
 </body>
 </html>
